@@ -1,5 +1,7 @@
 // utils/imageConverter.ts
 
+import { ConvertedFile } from "@/lib/definitions/converted-file";
+
 /**
  * Creates a BMP file header (14 bytes)
  */
@@ -87,10 +89,7 @@ function convertToBGRA(imageData: ImageData): Uint8Array {
     return output;
 }
 
-type ConvertedFile = {
-    name: string;
-    url: string;
-};
+
 
 /**
  * Converts a PNG file to our custom BMP format
@@ -145,45 +144,10 @@ export async function convertPngToBmp(file: File): Promise<ConvertedFile> {
             name: file.name.replace('.png', '.bmp'),
             url: URL.createObjectURL(new Blob([bmpData], { type: 'image/bmp' }))
         }
-    } finally {
+    } catch (e: unknown) {
         return {
-            name: file.name.replace('.png', '.bmp'),
-            url: URL.createObjectURL(file) // In a real scenario, this would be the converted file blob
+            name: file.name,
+            error: e instanceof Error ? e.message : 'An unknown error occurred'
         }
     }
 }
-
-/**
- * Example usage in a Next.js component:
- * 
- * import { convertPngToBmp } from '@/utils/imageConverter';
- * 
- * export default function ImageConverter() {
- *   const handleFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
- *     const file = event.target.files?.[0];
- *     if (file) {
- *       try {
- *         const bmpBlob = await convertPngToBmp(file);
- *         
- *         // Create download link
- *         const url = URL.createObjectURL(bmpBlob);
- *         const a = document.createElement('a');
- *         a.href = url;
- *         a.download = file.name.replace('.png', '.bmp');
- *         a.click();
- *         URL.revokeObjectURL(url);
- *       } catch (error) {
- *         console.error('Conversion failed:', error);
- *       }
- *     }
- *   };
- * 
- *   return (
- *     <input
- *       type="file"
- *       accept="image/png"
- *       onChange={handleFileChange}
- *     />
- *   );
- * }
- */

@@ -5,11 +5,12 @@ import { useDropzone } from 'react-dropzone'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
-import { convertPngToBmp } from '@/utils/convert'
+import { convertPngToBmp } from '@/lib/convert'
+import { ConvertedFile } from '@/lib/definitions/converted-file'
 
 export function FileConverterComponent() {
   const [files, setFiles] = useState<File[]>([])
-  const [convertedFiles, setConvertedFiles] = useState<{ name: string, url: string }[]>([])
+  const [convertedFiles, setConvertedFiles] = useState<ConvertedFile[]>([])
   const [isConverting, setIsConverting] = useState(false)
   const [progress, setProgress] = useState(0)
 
@@ -22,7 +23,7 @@ export function FileConverterComponent() {
     accept: { 'image/png': ['.png'] },
     multiple: true
   })
-  
+
   const handleConversion = async () => {
     setIsConverting(true)
     setProgress(0)
@@ -44,9 +45,8 @@ export function FileConverterComponent() {
         <h1 className="text-2xl font-bold text-center">PNG to BMP Converter</h1>
         <div
           {...getRootProps()}
-          className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
-            isDragActive ? 'border-primary bg-primary/10' : 'border-gray-300 hover:border-primary'
-          }`}
+          className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${isDragActive ? 'border-primary bg-primary/10' : 'border-gray-300 hover:border-primary'
+            }`}
         >
           <input {...getInputProps()} />
           {isDragActive ? (
@@ -81,14 +81,21 @@ export function FileConverterComponent() {
               {convertedFiles.map((file, index) => (
                 <li key={index} className="flex justify-between items-center">
                   <span>{file.name}</span>
-                  <Button asChild size="sm">
-                    <a href={file.url} download={file.name}>
-                      Download
-                    </a>
-                  </Button>
+                  {('url' in file) ? (
+                    // Render the download link if the file conversion was successful
+                    <Button asChild size="sm">
+                      <a href={file.url} download={file.name}>
+                        Download
+                      </a>
+                    </Button>
+                  ) : (
+                    // Render the error message if the file conversion failed
+                    <span className="text-red-500">{file.error}</span>
+                  )}
                 </li>
               ))}
             </ul>
+
           </div>
         )}
       </Card>
